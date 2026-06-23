@@ -1,0 +1,63 @@
+{
+  "expo": {
+    "name": "Harmonia",
+    "slug": "App-Harmonia",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/images/icon.png",
+    "scheme": "harmonia",
+    "userInterfaceStyle": "dark",
+    "newArchEnabled": true,
+    "ios": {
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSCameraUsageDescription": "Tirar foto para seu perfil de aluno",
+        "NSPhotoLibraryUsageDescription": "Selecionar foto da galeria",
+        "NSMicrophoneUsageDescription": "Usar microfone para o afinador"
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/images/adaptive-icon.png",
+        "backgroundColor": "#0F0F11"
+      },
+      "edgeToEdgeEnabled": true,
+      "permissions": ["CAMERA", "RECORD_AUDIO", "READ_MEDIA_IMAGES"]
+    },
+    "web": {
+      "bundler": "metro",
+      "output": "single",
+      "favicon": "./assets/images/favicon.png"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-sqlite",
+      "expo-audio",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Selecionar foto da galeria",
+          "cameraPermission": "Tirar foto para seu perfil"
+        }
+      ],
+      [
+        "expo-notifications",
+        {
+          "color": "#E87A3E"
+        }
+      ],
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/images/splash-icon.png",
+          "imageWidth": 200,
+          "resizeMode": "contain",
+          "backgroundColor": "#0F0F11"
+        }
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}
