@@ -32,7 +32,16 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
     ...(init.headers as Record<string, string> | undefined),
   };
   if (token) headers.Authorization = `Bearer ${token}`;
-  const res = await fetch(`${BASE}/api${path}`, { ...init, headers });
+
+  let res: Response;
+  try {
+    res = await fetch(`${BASE}/api${path}`, { ...init, headers });
+  } catch (_e) {
+    throw new Error(
+      'Sem conexão com o servidor. Verifique sua internet e tente novamente.',
+    );
+  }
+
   const text = await res.text();
   const data = text ? JSON.parse(text) : ({} as T);
   if (!res.ok) {

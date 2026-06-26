@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useRouter } from 'expo-router';
-import { LogIn, Music4 } from 'lucide-react-native';
+import { LogIn, Music4, Eye, EyeOff } from 'lucide-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Button } from '@/src/components/Button';
@@ -17,6 +17,7 @@ export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showPwd, setShowPwd] = useState(false);
   const [err, setErr] = useState<{ email?: string; password?: string }>({});
 
   const validate = () => {
@@ -63,15 +64,30 @@ export default function Login() {
               placeholder="voce@email.com"
               errorText={err.email}
             />
-            <Input
-              testID="login-password-input"
-              label="Senha"
-              secureTextEntry
-              value={password}
-              onChangeText={setPassword}
-              placeholder="••••••••"
-              errorText={err.password}
-            />
+            <View style={{ position: 'relative' }}>
+              <Input
+                testID="login-password-input"
+                label="Senha"
+                secureTextEntry={!showPwd}
+                value={password}
+                onChangeText={setPassword}
+                placeholder="••••••••"
+                errorText={err.password}
+              />
+              <TouchableOpacity
+                testID="toggle-password-visibility"
+                onPress={() => setShowPwd((s) => !s)}
+                activeOpacity={0.7}
+                style={{ position: 'absolute', right: 8, top: 32, padding: 10 }}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              >
+                {showPwd ? (
+                  <EyeOff size={20} color="#A1A1AA" strokeWidth={2} />
+                ) : (
+                  <Eye size={20} color="#A1A1AA" strokeWidth={2} />
+                )}
+              </TouchableOpacity>
+            </View>
             <Button testID="login-submit-button" title="Entrar" onPress={submit} loading={loading} icon={<LogIn size={18} color="#0c0c0c" strokeWidth={3} />} />
           </View>
 
@@ -82,10 +98,7 @@ export default function Login() {
             </TouchableOpacity>
           </View>
 
-          <View style={styles.hint} testID="admin-hint">
-            <Text style={styles.hintTitle}>Acesso Superadmin</Text>
-            <Text style={styles.hintBody}>admin@harmonia.app  •  Admin@123</Text>
-          </View>
+          
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -102,7 +115,4 @@ const styles = StyleSheet.create({
   altRow: { flexDirection: 'row', justifyContent: 'center', marginTop: 22 },
   altTxt: { color: theme.textDim, fontSize: 14 },
   altLink: { color: theme.primary, fontWeight: '800', fontSize: 14 },
-  hint: { marginTop: 36, padding: 16, borderRadius: 12, backgroundColor: theme.bg2, borderWidth: 1, borderColor: theme.border },
-  hintTitle: { color: theme.textDim, fontSize: 11, fontWeight: '800', textTransform: 'uppercase', letterSpacing: 1.5 },
-  hintBody: { color: theme.text, fontSize: 13, marginTop: 6, fontFamily: Platform.select({ ios: 'Menlo', android: 'monospace' }) },
 });

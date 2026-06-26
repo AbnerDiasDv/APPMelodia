@@ -14,7 +14,7 @@ BASE_URL = os.environ.get("EXPO_PUBLIC_BACKEND_URL") or "https://music-learn-16.
 BASE_URL = BASE_URL.rstrip("/")
 API = f"{BASE_URL}/api"
 
-ADMIN_EMAIL = "admin@harmonia.app"
+ADMIN_EMAIL = "admin@appharmonia.app"
 ADMIN_PASSWORD = "Admin@123"
 
 

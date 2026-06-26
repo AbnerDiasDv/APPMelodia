@@ -1,9 +1,5 @@
 """Harmonia – Backend FastAPI para o app de aprendizado de instrumentos.
 
-Notas importantes:
-- Todos os endpoints estão prefixados com /api (regra de roteamento do ambiente).
-- Identificadores usam UUIDs em string (campo `id`) para evitar problemas com
-  ObjectId do MongoDB e serialização JSON.
 """
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -49,9 +45,8 @@ app = FastAPI(title="Harmonia API")
 api = APIRouter(prefix="/api")
 
 
-# -----------------------------------------------------------------------------
 # Models
-# -----------------------------------------------------------------------------
+
 Role = Literal["aluno", "superadmin"]
 Instrument = Literal["violao", "teclado", "piano", "flauta", "bateria"]
 
@@ -107,9 +102,8 @@ class AdminUserPatchIn(BaseModel):
     role: Optional[Role] = None
 
 
-# -----------------------------------------------------------------------------
+
 # Security helpers
-# -----------------------------------------------------------------------------
 def hash_password(plain: str) -> str:
     return pwd_context.hash(plain)
 
@@ -181,7 +175,7 @@ INSTRUMENTS_META = [
      "image": "https://images.unsplash.com/photo-1520523839897-bd0b52f945a0?w=900&q=80",
      "description": "Técnica, leitura de partitura e repertório clássico."},
     {"id": "flauta", "name": "Flauta", "emoji_label": "Sopro", "color": "#60A5FA",
-     "image": "https://images.unsplash.com/photo-1621368286550-f54551f39b91?w=900&q=80",
+     "image": "https://6a3c92405605847e40cc571d.imgix.net/A-person-with-a-flute-in-the-middle-of-a-garden--429151.jpeg",
      "description": "Controle de respiração, dedilhado e expressão musical."},
     {"id": "bateria", "name": "Bateria", "emoji_label": "Percussão", "color": "#F472B6",
      "image": "https://images.unsplash.com/photo-1524230659092-07f99a75c013?w=900&q=80",
@@ -248,7 +242,7 @@ CHORDS_SEED = [
     {"instrument": "violao", "name": "Em (Mi menor)", "diagram": "022000", "difficulty": "fácil"},
     {"instrument": "violao", "name": "F (Fá Maior)", "diagram": "133211", "difficulty": "difícil"},
     {"instrument": "violao", "name": "B7 (Si sétima)", "diagram": "x21202", "difficulty": "médio"},
-    # teclado / piano (notas de baixo p/ cima)
+    # teclado / piano 
     {"instrument": "teclado", "name": "C Maior", "diagram": "C-E-G", "difficulty": "fácil"},
     {"instrument": "teclado", "name": "G Maior", "diagram": "G-B-D", "difficulty": "fácil"},
     {"instrument": "teclado", "name": "F Maior", "diagram": "F-A-C", "difficulty": "fácil"},
@@ -259,14 +253,14 @@ CHORDS_SEED = [
     {"instrument": "piano", "name": "F Maior", "diagram": "F-A-C", "difficulty": "fácil"},
     {"instrument": "piano", "name": "Am", "diagram": "A-C-E", "difficulty": "fácil"},
     {"instrument": "piano", "name": "Dm7", "diagram": "D-F-A-C", "difficulty": "médio"},
-    # flauta (dedilhado simplificado)
+    # flauta 
     {"instrument": "flauta", "name": "Dó", "diagram": "●●●●●●●", "difficulty": "fácil"},
     {"instrument": "flauta", "name": "Ré", "diagram": "●●●●●●○", "difficulty": "fácil"},
     {"instrument": "flauta", "name": "Mi", "diagram": "●●●●●○○", "difficulty": "fácil"},
     {"instrument": "flauta", "name": "Fá", "diagram": "●●●●○○○", "difficulty": "fácil"},
     {"instrument": "flauta", "name": "Sol", "diagram": "●●●○○○○", "difficulty": "fácil"},
     {"instrument": "flauta", "name": "Lá", "diagram": "●●○○○○○", "difficulty": "médio"},
-    # bateria (padrões)
+    # bateria 
     {"instrument": "bateria", "name": "Groove básico 4/4", "diagram": "B-C-S-C", "difficulty": "fácil"},
     {"instrument": "bateria", "name": "Rock simples", "diagram": "B-C / S-C", "difficulty": "fácil"},
     {"instrument": "bateria", "name": "Samba", "diagram": "B.B-T.S-B", "difficulty": "médio"},
@@ -281,7 +275,7 @@ async def seed_db():
     await db.lesson_progress.create_index([("user_id", 1), ("lesson_id", 1)], unique=True)
     await db.practice_sessions.create_index([("user_id", 1), ("created_at", -1)])
 
-    # Seed superadmin idempotente
+    # Seed superadmin 
     existing = await db.users.find_one({"email": ADMIN_EMAIL})
     if not existing:
         admin_doc = {
@@ -304,7 +298,7 @@ async def seed_db():
             {"$set": {"role": "superadmin", "is_banned": False}},
         )
 
-    # Seed lições (recria sempre garantindo sincronismo de conteúdo)
+    # Seed lições
     await db.lessons.delete_many({})
     await db.lessons.insert_many(lessons_seed())
 
@@ -320,15 +314,14 @@ async def seed_db():
                 await db.chords.count_documents({}))
 
 
-# -----------------------------------------------------------------------------
 # Endpoints
-# -----------------------------------------------------------------------------
+
 @api.get("/")
 async def root():
     return {"message": "Harmonia API ativa", "version": "1.0"}
 
 
-# ------- Auth --------------------------------------------------------------
+#  Auth 
 @api.post("/auth/register", response_model=TokenOut)
 async def register(body: RegisterIn):
     existing = await db.users.find_one({"email": body.email})
@@ -376,7 +369,7 @@ async def update_me(body: ProfileUpdateIn, user: dict = Depends(get_current_user
     return public_user(fresh)
 
 
-# ------- Catálogo ----------------------------------------------------------
+#  Catálogo 
 @api.get("/instruments")
 async def list_instruments(user: dict = Depends(get_current_user)):
     out = []
@@ -462,7 +455,7 @@ async def list_chords(
     return items
 
 
-# ------- Prática + Estatísticas --------------------------------------------
+#  Prática + Estatísticas 
 @api.post("/practice")
 async def log_practice(body: PracticeLogIn, user: dict = Depends(get_current_user)):
     doc = {
@@ -550,7 +543,7 @@ async def my_stats(user: dict = Depends(get_current_user)):
     }
 
 
-# ------- Admin -------------------------------------------------------------
+#  Admin 
 @api.get("/admin/users")
 async def admin_users(
     search: Optional[str] = None,
@@ -664,9 +657,8 @@ async def admin_stats(_: dict = Depends(require_role("superadmin"))):
     }
 
 
-# -----------------------------------------------------------------------------
 # App lifecycle
-# -----------------------------------------------------------------------------
+
 app.include_router(api)
 
 app.add_middleware(

@@ -4,7 +4,6 @@ import { Alert, Image, Linking, ScrollView, StyleSheet, Switch, Text, TouchableO
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Camera as CamIcon, Bell, LogOut, Music4 } from 'lucide-react-native';
 import * as ImagePicker from 'expo-image-picker';
-import * as Notifications from 'expo-notifications';
 
 import { useAuth } from '@/src/lib/auth';
 import { useToast } from '@/src/components/Toast';
@@ -65,26 +64,32 @@ export default function Profile() {
     }
   };
 
-  const toggleReminder = async (val: boolean) => {
+ const toggleReminder = async (val: boolean) => {
     setReminder(val);
     await api.updateMe({ daily_reminder_enabled: val } as any);
-    if (val) {
-      const perm = await Notifications.requestPermissionsAsync();
-      if (!perm.granted) {
-        setReminder(false);
-        await api.updateMe({ daily_reminder_enabled: false } as any);
-        show('Sem permissão de notificações', 'error');
-        return;
+    try {
+      // Import dinamico para evitar auto-registro de push no Expo Go (SDK 54+)
+      const Notifications = await import('expo-notifications');
+      if (val) {
+        const perm = await Notifications.requestPermissionsAsync();
+        if (!perm.granted) {
+          setReminder(false);
+          await api.updateMe({ daily_reminder_enabled: false } as any);
+          show('Sem permissão de notificações', 'error');
+          return;
+        }
+        await Notifications.cancelAllScheduledNotificationsAsync();
+        await Notifications.scheduleNotificationAsync({
+          content: { title: 'Hora de praticar', body: 'Vamos manter sua sequencia? Abra o APPMelodia.' },
+          trigger: { type: Notifications.SchedulableTriggerInputTypes.DAILY, hour: 19, minute: 0 } as any,
+        });
+        show('Lembrete diário ativado às 19h', 'success');
+      } else {
+        await Notifications.cancelAllScheduledNotificationsAsync();
+        show('Lembrete desativado', 'info');
       }
-      await Notifications.cancelAllScheduledNotificationsAsync();
-      await Notifications.scheduleNotificationAsync({
-        content: { title: 'Hora de praticar', body: 'Vamos manter sua sequencia? Abra o Harmonia.' },
-        trigger: { type: Notifications.SchedulableTriggerInputTypes.DAILY, hour: 19, minute: 0 } as any,
-      });
-      show('Lembrete diário ativado às 19h', 'success');
-    } else {
-      await Notifications.cancelAllScheduledNotificationsAsync();
-      show('Lembrete desativado', 'info');
+    } catch {
+      show('Notificações disponíveis apenas em build nativo', 'info');
     }
   };
 
